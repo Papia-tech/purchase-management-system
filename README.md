@@ -161,29 +161,22 @@ VITE_API_URL=http://localhost:5000/api
 
 You can launch the full stack in one simple command or run frontend and backend in separate terminals:
 
-#### Method A: Concurrent Run (Recommended)
-From the project root:
-```bash
-npm run dev
-```
-This concurrently boots:
-- **Backend API:** `http://localhost:5000`
-- **Frontend App:** `http://localhost:5173`
-
----
-
-#### Method B: Separate Terminals
+#### Separate Terminals
 
 **Terminal 1 — Backend:**
 ```bash
+cd backend
+npm install
 npm run server
-# or: cd backend && npm start
+# or: cd backend && npm install && npm run dev
 ```
 
 **Terminal 2 — Frontend:**
 ```bash
+cd frontend
+npm install
 npm run client
-# or: cd frontend && npm run dev
+# or: cd frontend && npm install && npm run dev
 ```
 
 Visit **`http://localhost:5173`** in your browser.
