@@ -1,0 +1,18 @@
+{
+  "name": "invento-purchase-management-system",
+  "version": "1.0.0",
+  "description": "INVENTO – Purchase Management System (MERN Stack University Project)",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "npm --prefix backend start",
+    "client": "npm --prefix frontend run dev",
+    "seed": "npm --prefix backend run seed",
+    "seed:shoes": "npm --prefix backend run seed:shoes",
+    "seed:electronics": "npm --prefix backend run seed:electronics",
+    "build": "npm --prefix frontend run build",
+    "install:all": "npm install && npm --prefix backend install && npm --prefix frontend install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
