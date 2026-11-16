@@ -1,10 +1,6 @@
 # INVENTO – Purchase Management System
 
-[![MERN Stack](https://img.shields.io/badge/Stack-MERN-green.svg)](https://react.dev)
-[![React](https://img.shields.io/badge/Frontend-React%20%7C%20Vite-blue.svg)](https://vitejs.dev)
-[![Node](https://img.shields.io/badge/Backend-Node.js%20%7C%20Express-lightgrey.svg)](https://nodejs.org)
-[![MongoDB](https://img.shields.io/badge/Database-MongoDB%20%7C%20Mongoose-brightgreen.svg)](https://www.mongodb.com)
-[![License](https://img.shields.io/badge/License-MIT-orange.svg)](#license)
+<img src="dashboard.png" alt="INVENTO Dashboard" width="100%">
 
 **INVENTO** is a clean, modern, and professional **Purchase Management System** built on the **MERN stack** (MongoDB, Express.js, React, Node.js). Designed for university DBMS laboratory coursework, project evaluations, and viva demonstrations, it provides an intuitive web platform to manage suppliers, maintain a product catalog, record purchase transactions, and track stock levels in real time.
 
