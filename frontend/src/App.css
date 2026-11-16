@@ -878,3 +878,28 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F4F4F6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #FF5A2B;
+  border-radius: 10px;
+  border: 2px solid #F4F4F6;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #E84C1F;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #FF5A2B #F4F4F6;
+}
