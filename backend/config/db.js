@@ -33,12 +33,13 @@ const connectDB = async () => {
 
     mongoMemoryServerInstance = await MongoMemoryServer.create({
       instance: {
+        dbName: 'invento',
         dbPath: dataDir,
         storageEngine: 'wiredTiger'
       }
     });
 
-    const memoryUri = mongoMemoryServerInstance.getUri();
+    const memoryUri = mongoMemoryServerInstance.getUri('invento');
     const conn = await mongoose.connect(memoryUri);
     console.log(`[Database] Running embedded MongoDB instance at: ${memoryUri}`);
     console.log(`[Database] Storage directory: ${dataDir}`);

@@ -6,8 +6,23 @@ const { connectDB } = require('./config/db');
 // Load environment variables
 dotenv.config();
 
-// Connect to Database
-connectDB();
+const Product = require('./models/Product');
+const { seedData } = require('./seed');
+
+// Connect to Database & auto-initialize reference footwear dataset if empty
+(async () => {
+  try {
+    await connectDB();
+    const count = await Product.countDocuments();
+    if (count === 0) {
+      console.log('[Startup] No records found. Auto-populating The VERY FIRST Reference Dataset (Footwear / Shoes)...');
+      await seedData('shoes');
+      console.log('[Startup] Initial reference database ready!');
+    }
+  } catch (err) {
+    console.error(`[Startup] Database initialization note: ${err.message}`);
+  }
+})();
 
 const app = express();
 
@@ -21,16 +36,17 @@ app.use('/api/products', require('./routes/productRoutes'));
 app.use('/api/purchases', require('./routes/purchaseRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 
-// Seed endpoint for convenience
+// Seed endpoint for convenience (POST or GET)
 app.all('/api/seed', async (req, res) => {
   try {
     delete require.cache[require.resolve('./seed')];
-    const { seedData } = require('./seed');
+    const { seedData: executeSeed } = require('./seed');
     const mode = req.body?.type || req.query?.type || 'shoes';
-    const result = await seedData(mode);
+    const result = await executeSeed(mode);
     res.status(200).json({
       success: true,
-      message: `Database seeded successfully (${result?.mode || mode} records)`
+      message: `Database seeded successfully (${result?.mode || mode} records)`,
+      dataset: result?.mode || mode
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

@@ -41,4 +41,9 @@ export const dashboardService = {
   getStats: () => api.get('/dashboard')
 };
 
+// Seed / Demo Data Reset API
+export const seedService = {
+  resetDatabase: (type = 'shoes') => api.post('/seed', { type })
+};
+
 export default api;

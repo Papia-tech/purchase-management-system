@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { dashboardService, purchaseService, supplierService, productService } from '../services/api';
+import { dashboardService, purchaseService, supplierService, productService, seedService } from '../services/api';
 import StatCard from '../components/StatCard';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
@@ -13,6 +13,7 @@ const Dashboard = ({ showToast }) => {
     recentPurchases: []
   });
   const [loading, setLoading] = useState(true);
+  const [resetting, setResetting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [period, setPeriod] = useState('This Month');
 
@@ -79,6 +80,19 @@ const Dashboard = ({ showToast }) => {
       month: 'short',
       year: 'numeric'
     });
+  };
+
+  const handleResetToShoes = async () => {
+    try {
+      setResetting(true);
+      await seedService.resetDatabase('shoes');
+      await fetchDashboardData();
+      showToast('Reference Footwear database loaded successfully!', 'success');
+    } catch (err) {
+      showToast('Failed to reset reference database: ' + (err.response?.data?.message || err.message), 'error');
+    } finally {
+      setResetting(false);
+    }
   };
 
   const handleOpenAddModal = () => {
@@ -218,6 +232,20 @@ const Dashboard = ({ showToast }) => {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
+          </button>
+
+          {/* Reset Reference Footwear Data Button */}
+          <button
+            className="dropdown-pill-btn"
+            title="Reset database to the original reference Footwear dataset (Nike ZoomX, Adidas Adizero Pro, etc.)"
+            onClick={handleResetToShoes}
+            disabled={resetting}
+            style={{ cursor: resetting ? 'wait' : 'pointer' }}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#FF5A2B" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+            </svg>
+            <span>{resetting ? 'Resetting...' : 'Reset Reference Data'}</span>
           </button>
 
           {/* + New Purchase Action Button */}

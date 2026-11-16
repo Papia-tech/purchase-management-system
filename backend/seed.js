@@ -209,7 +209,13 @@ const seedData = async (type = 'shoes') => {
       ];
 
       await Purchase.insertMany(purchasesData);
-      console.log('[Seed] The VERY FIRST reference database (Shoes / Footwear) seeded successfully!');
+      console.log('------------------------------------------------------------');
+      console.log('[Seed] The VERY FIRST reference database (Footwear/Shoes) seeded successfully:');
+      console.log('       • 4 Suppliers: Apex Footwear Distribution, Prime Athletic Imports, Metro Gear, Pacific Sports');
+      console.log('       • 8 Products:  Nike ZoomX ($250), Adidas Adizero Pro ($220), Nike Air Zoom Pegasus 40 ($190),');
+      console.log('                      Adidas Barricade ($180), NikeCourt Vapor ($210), Vomero 5 ($128), Mercurial ($200), Dunk Low ($300)');
+      console.log('       • 5 Purchases: #P001, #P002, #P003, #P004, #P005');
+      console.log('------------------------------------------------------------');
       return { success: true, count: purchasesData.length, mode: 'shoes' };
     }
   } catch (err) {
@@ -243,8 +249,12 @@ const run = async () => {
   // 2. Direct database connection
   try {
     await seedData(mode);
+    const { disconnectDB } = require('./config/db');
+    await disconnectDB();
+    console.log('[Seed] Database disconnected cleanly.');
     process.exit(0);
   } catch (err) {
+    console.error(`[Seed] Error in direct seed: ${err.message}`);
     process.exit(1);
   }
 };
