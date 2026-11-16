@@ -167,16 +167,16 @@ You can launch the full stack in one simple command or run frontend and backend 
 ```bash
 cd backend
 npm install
-npm run server
-# or: cd backend && npm install && npm run dev
+npm run dev
+# or: cd backend && npm install && npm run server
 ```
 
 **Terminal 2 — Frontend:**
 ```bash
 cd frontend
 npm install
-npm run client
-# or: cd frontend && npm install && npm run dev
+npm run dev
+# or: cd frontend && npm install && npm run client
 ```
 
 Visit **`http://localhost:5173`** in your browser.
