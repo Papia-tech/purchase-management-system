@@ -1,7 +1,43 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { productService } from '../services/api';
 
 const Navbar = () => {
+  const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const fetchLowStock = async () => {
+    try {
+      const res = await productService.getLowStock(10);
+      if (res.data?.success) {
+        setLowStockProducts(res.data.data);
+      }
+    } catch {
+      // silent fallback
+    }
+  };
+
+  useEffect(() => {
+    fetchLowStock();
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [dropdownOpen]);
+
   const navItems = [
     { name: 'Dashboard', path: '/' },
     { name: 'Suppliers', path: '/suppliers' },
@@ -49,14 +85,79 @@ const Navbar = () => {
           </svg>
         </button>
 
-        {/* Bell Notification with Red Dot */}
-        <button className="nav-circle-btn notification-btn" title="Notifications">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-          </svg>
-          <span className="notification-dot"></span>
-        </button>
+        {/* Bell Notification with Live Low Stock Count Badge & Dropdown */}
+        <div className="notifications-dropdown-container" ref={dropdownRef}>
+          <button
+            className="nav-circle-btn notification-btn"
+            title={lowStockProducts.length > 0 ? `${lowStockProducts.length} low stock alerts` : 'No low stock alerts'}
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            {lowStockProducts.length > 0 ? (
+              <span className="notification-count-badge">{lowStockProducts.length}</span>
+            ) : null}
+          </button>
+
+          {dropdownOpen && (
+            <div className="notifications-dropdown-menu">
+              <div className="notifications-dropdown-header">
+                <h4>
+                  <span>⚠️</span>
+                  <span>Low Stock Alerts ({lowStockProducts.length})</span>
+                </h4>
+                <span style={{ fontSize: '11px', color: '#888' }}>Threshold: ≤ 10 units</span>
+              </div>
+
+              <div className="notifications-dropdown-list">
+                {lowStockProducts.length === 0 ? (
+                  <div className="notification-empty">
+                    <div style={{ fontSize: '24px', marginBottom: '6px' }}>✓</div>
+                    <div style={{ fontWeight: 600, color: '#10B981', marginBottom: '4px' }}>All Inventory Healthy</div>
+                    <div style={{ fontSize: '12px', color: '#888' }}>No products below the reorder threshold.</div>
+                  </div>
+                ) : (
+                  lowStockProducts.map((p) => (
+                    <div
+                      key={p._id}
+                      className="notification-item"
+                      style={{ cursor: 'pointer' }}
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        navigate('/products?filter=low-stock');
+                      }}
+                    >
+                      <div className="notification-item-left">
+                        <div className="notification-item-name">{p.name}</div>
+                        <div className="notification-item-meta">{p.category} • ${p.price}</div>
+                      </div>
+                      <div>
+                        <span className={`status-pill ${p.quantity === 0 ? 'out-of-stock' : 'low-stock'}`} style={{ fontSize: '11px', padding: '3px 8px' }}>
+                          {p.quantity === 0 ? 'Out of stock' : `${p.quantity} units left`}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {lowStockProducts.length > 0 && (
+                <div className="notifications-dropdown-footer">
+                  <button
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      navigate('/products?filter=low-stock');
+                    }}
+                  >
+                    View All Low Stock Items in Catalog →
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* User Profile Avatar */}
         <div className="user-avatar-container" title="Administrator Profile">

@@ -25,6 +25,27 @@ exports.getProductById = async (req, res) => {
   }
 };
 
+// @desc    Get products with stock at or below low stock threshold
+// @route   GET /api/products/low-stock
+exports.getLowStockProducts = async (req, res) => {
+  try {
+    const threshold = req.query.threshold !== undefined ? Number(req.query.threshold) : 10;
+    const products = await Product.find({ quantity: { $lte: threshold } }).sort({ quantity: 1 });
+    res.status(200).json({
+      success: true,
+      threshold,
+      count: products.length,
+      data: products
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error while fetching low stock products',
+      error: error.message
+    });
+  }
+};
+
 // @desc    Create new product
 // @route   POST /api/products
 exports.createProduct = async (req, res) => {

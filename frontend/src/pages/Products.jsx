@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { productService } from '../services/api';
 import StatCard from '../components/StatCard';
 import Modal from '../components/Modal';
@@ -13,10 +14,18 @@ const initialForm = {
 };
 
 const Products = ({ showToast }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [stockFilter, setStockFilter] = useState(() => (searchParams.get('filter') === 'low-stock' ? 'low-stock' : 'all'));
+
+  useEffect(() => {
+    if (searchParams.get('filter') === 'low-stock') {
+      setStockFilter('low-stock');
+    }
+  }, [searchParams]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -148,9 +157,20 @@ const Products = ({ showToast }) => {
 
   const filtered = products.filter((p) => {
     const matchesCat = categoryFilter === 'All' || p.category === categoryFilter;
-    if (!searchTerm) return matchesCat;
+    const matchesStock =
+      stockFilter === 'all'
+        ? true
+        : stockFilter === 'low-stock'
+        ? p.quantity <= 10
+        : stockFilter === 'out-of-stock'
+        ? p.quantity === 0
+        : stockFilter === 'in-stock'
+        ? p.quantity > 10
+        : true;
+
+    if (!searchTerm) return matchesCat && matchesStock;
     const q = searchTerm.toLowerCase();
-    return matchesCat && (p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
+    return matchesCat && matchesStock && (p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q));
   });
 
   return (
@@ -187,6 +207,23 @@ const Products = ({ showToast }) => {
                 {c === 'All' ? 'All Categories' : c}
               </option>
             ))}
+          </select>
+
+          <select
+            className="dropdown-pill-btn"
+            value={stockFilter}
+            onChange={(e) => {
+              setStockFilter(e.target.value);
+              if (e.target.value !== 'low-stock' && searchParams.get('filter') === 'low-stock') {
+                setSearchParams({});
+              }
+            }}
+            title="Filter by stock inventory health"
+          >
+            <option value="all">All Stock Status</option>
+            <option value="low-stock">⚠️ Low Stock (≤ 10)</option>
+            <option value="out-of-stock">🚫 Out of Stock (0)</option>
+            <option value="in-stock">✓ In Stock (&gt; 10)</option>
           </select>
 
           <button
@@ -227,13 +264,23 @@ const Products = ({ showToast }) => {
           iconType="suppliers"
         />
 
-        <StatCard
-          title="Low Stock Alert"
-          subtext={lowStockCount > 0 ? 'Needs reordering' : 'Stock level optimal'}
-          subtextColor={lowStockCount > 0 ? 'grey' : 'green'}
-          value={lowStockCount}
-          iconType="purchases"
-        />
+        <div
+          onClick={() => {
+            const next = stockFilter === 'low-stock' ? 'all' : 'low-stock';
+            setStockFilter(next);
+            if (next === 'all') setSearchParams({});
+          }}
+          style={{ cursor: 'pointer' }}
+          title="Click to toggle low stock filter"
+        >
+          <StatCard
+            title="Low Stock Alert"
+            subtext={stockFilter === 'low-stock' ? 'Filter active (Click to reset)' : lowStockCount > 0 ? 'Click to view alerts' : 'Stock level optimal'}
+            subtextColor={lowStockCount > 0 ? 'orange' : 'green'}
+            value={lowStockCount}
+            iconType="purchases"
+          />
+        </div>
 
         <StatCard
           title="Categories"
@@ -243,6 +290,28 @@ const Products = ({ showToast }) => {
           iconType="expenditure"
         />
       </div>
+
+      {/* Low Stock Alert Notification Banner */}
+      {lowStockCount > 0 && (
+        <div className="low-stock-alert-banner">
+          <div className="alert-content">
+            <span className="alert-icon">⚠️</span>
+            <div>
+              <strong>Low Stock Alert:</strong> {lowStockCount} product{lowStockCount > 1 ? 's are' : ' is'} at or below reorder threshold (≤ 10 units).
+            </div>
+          </div>
+          <button
+            className="alert-action-btn"
+            onClick={() => {
+              const next = stockFilter === 'low-stock' ? 'all' : 'low-stock';
+              setStockFilter(next);
+              if (next === 'all') setSearchParams({});
+            }}
+          >
+            {stockFilter === 'low-stock' ? 'Show All Products' : `View ${lowStockCount} Low Stock Item${lowStockCount > 1 ? 's' : ''}`}
+          </button>
+        </div>
+      )}
 
       {/* Table Card */}
       <div className="invento-table-card">

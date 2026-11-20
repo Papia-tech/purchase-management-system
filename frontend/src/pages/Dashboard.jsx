@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { dashboardService, purchaseService, supplierService, productService, seedService } from '../services/api';
 import StatCard from '../components/StatCard';
 import Modal from '../components/Modal';
@@ -18,6 +19,7 @@ const Dashboard = ({ showToast }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [period, setPeriod] = useState('This Month');
   const [importModalOpen, setImportModalOpen] = useState(false);
+  const navigate = useNavigate();
 
   // New Purchase Modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -73,6 +75,8 @@ const Dashboard = ({ showToast }) => {
       maximumFractionDigits: 0
     }).format(amount || 0);
   };
+
+  const lowStockProducts = products.filter((p) => p.quantity <= 10);
 
   const formatDate = (dateString) => {
     if (!dateString) return '—';
@@ -306,6 +310,24 @@ const Dashboard = ({ showToast }) => {
           iconType="expenditure"
         />
       </div>
+
+      {/* Low Stock Inventory Alert Banner */}
+      {lowStockProducts.length > 0 && (
+        <div className="low-stock-alert-banner">
+          <div className="alert-content">
+            <span className="alert-icon">⚠️</span>
+            <div>
+              <strong>Low Stock Alert:</strong> {lowStockProducts.length} product{lowStockProducts.length > 1 ? 's are' : ' is'} at or below reorder threshold (≤ 10 units).
+            </div>
+          </div>
+          <button
+            className="alert-action-btn"
+            onClick={() => navigate('/products?filter=low-stock')}
+          >
+            Review & Restock Products →
+          </button>
+        </div>
+      )}
 
       {/* Recent Purchases Card */}
       <div className="invento-table-card">

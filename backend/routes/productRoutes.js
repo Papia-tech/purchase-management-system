@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   getProducts,
   getProductById,
+  getLowStockProducts,
   createProduct,
   updateProduct,
   deleteProduct,
@@ -13,6 +14,7 @@ router.route('/')
   .get(getProducts)
   .post(createProduct);
 
+router.get('/low-stock', getLowStockProducts);
 router.post('/bulk', bulkImportProducts);
 router.post('/bulk-import', bulkImportProducts);
 
