@@ -61,7 +61,7 @@ const Navbar = () => {
         {/* User Profile Avatar */}
         <div className="user-avatar-container" title="Administrator Profile">
           <img
-            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80"
+            src="https://as2.ftcdn.net/v2/jpg/06/35/83/71/1000_F_635837130_D9mM6kJZTdTBUVCQmxE8WzoNlq1sJTN7.jpg"
             alt="Admin Avatar"
             className="navbar-avatar-img"
           />

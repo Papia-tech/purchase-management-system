@@ -25,19 +25,35 @@ const connectDB = async () => {
 
   // 2. Fallback to embedded persistent MongoDB for zero-configuration local runs & viva demos
   try {
+    const cachedBin = path.join(__dirname, '../node_modules/.cache/mongodb-memory-server/mongod-x64-win32-7.0.24.exe');
+    if (fs.existsSync(cachedBin)) {
+      process.env.MONGOMS_SYSTEM_BINARY = cachedBin;
+    }
+
     const { MongoMemoryServer } = require('mongodb-memory-server');
     const dataDir = path.join(__dirname, '../.mongo-data');
     if (!fs.existsSync(dataDir)) {
       fs.mkdirSync(dataDir, { recursive: true });
     }
 
-    mongoMemoryServerInstance = await MongoMemoryServer.create({
-      instance: {
-        dbName: 'invento',
-        dbPath: dataDir,
-        storageEngine: 'wiredTiger'
-      }
-    });
+    try {
+      mongoMemoryServerInstance = await MongoMemoryServer.create({
+        instance: {
+          port: 27017,
+          dbName: 'invento',
+          dbPath: dataDir,
+          storageEngine: 'wiredTiger'
+        }
+      });
+    } catch (portErr) {
+      mongoMemoryServerInstance = await MongoMemoryServer.create({
+        instance: {
+          dbName: 'invento',
+          dbPath: dataDir,
+          storageEngine: 'wiredTiger'
+        }
+      });
+    }
 
     const memoryUri = mongoMemoryServerInstance.getUri('invento');
     const conn = await mongoose.connect(memoryUri);

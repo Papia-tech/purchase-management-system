@@ -25,7 +25,8 @@ export const productService = {
   getById: (id) => api.get(`/products/${id}`),
   create: (data) => api.post('/products', data),
   update: (id, data) => api.put(`/products/${id}`, data),
-  delete: (id) => api.delete(`/products/${id}`)
+  delete: (id) => api.delete(`/products/${id}`),
+  bulkImport: (products) => api.post('/products/bulk', { products })
 };
 
 // Purchases API

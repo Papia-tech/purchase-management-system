@@ -126,3 +126,150 @@ exports.deleteProduct = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error while deleting product', error: error.message });
   }
 };
+
+// Helper to parse CSV text
+function parseCsvText(csvText) {
+  if (!csvText || typeof csvText !== 'string') return [];
+  const clean = csvText.replace(/^\uFEFF/, '');
+  const lines = clean.split(/\r\n|\n|\r/).filter((line) => line.trim().length > 0);
+  if (lines.length < 2) return [];
+
+  const parseRow = (line) => {
+    const row = [];
+    let insideQuotes = false;
+    let entry = '';
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      const nextChar = line[i + 1];
+      if (char === '"') {
+        if (insideQuotes && nextChar === '"') {
+          entry += '"';
+          i++;
+        } else {
+          insideQuotes = !insideQuotes;
+        }
+      } else if (char === ',' && !insideQuotes) {
+        row.push(entry.trim());
+        entry = '';
+      } else {
+        entry += char;
+      }
+    }
+    row.push(entry.trim());
+    return row;
+  };
+
+  const headers = parseRow(lines[0]).map((h) => h.toLowerCase().replace(/[^a-z0-9]/g, ''));
+  const getIndex = (aliases) => headers.findIndex((h) => aliases.includes(h));
+
+  const nameIdx = getIndex(['name', 'productname', 'product', 'item', 'title']);
+  const categoryIdx = getIndex(['category', 'categoryname', 'type', 'group']);
+  const priceIdx = getIndex(['price', 'unitprice', 'cost', 'rate']);
+  const quantityIdx = getIndex(['quantity', 'qty', 'stock', 'stockquantity', 'inventory', 'units']);
+
+  const results = [];
+  for (let i = 1; i < lines.length; i++) {
+    const cols = parseRow(lines[i]);
+    if (cols.length === 0 || cols.every((c) => c === '')) continue;
+    results.push({
+      name: nameIdx !== -1 ? cols[nameIdx] : cols[0],
+      category: categoryIdx !== -1 ? cols[categoryIdx] : cols[1],
+      price: priceIdx !== -1 ? cols[priceIdx] : cols[2],
+      quantity: quantityIdx !== -1 ? cols[quantityIdx] : (cols[3] || 0)
+    });
+  }
+  return results;
+}
+
+// @desc    Bulk import products
+// @route   POST /api/products/bulk
+exports.bulkImportProducts = async (req, res) => {
+  try {
+    let rawItems = [];
+
+    if (Array.isArray(req.body)) {
+      rawItems = req.body;
+    } else if (req.body && Array.isArray(req.body.products)) {
+      rawItems = req.body.products;
+    } else if (typeof req.body === 'string' || (req.body && typeof req.body.csv === 'string')) {
+      const csvContent = typeof req.body === 'string' ? req.body : req.body.csv;
+      rawItems = parseCsvText(csvContent);
+    }
+
+    if (!rawItems || rawItems.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No products provided for bulk import'
+      });
+    }
+
+    const validProducts = [];
+    const errors = [];
+
+    rawItems.forEach((item, index) => {
+      const rowNum = index + 1;
+      const name = item.name ? String(item.name).trim() : '';
+      const category = item.category ? String(item.category).trim() : '';
+      const rawPrice = item.price !== undefined && item.price !== null ? String(item.price).replace(/[$,]/g, '').trim() : '';
+      const rawQty = item.quantity !== undefined && item.quantity !== null && item.quantity !== ''
+        ? String(item.quantity).replace(/[,]/g, '').trim()
+        : '0';
+
+      if (!name) {
+        errors.push(`Row ${rowNum}: Product name is required`);
+        return;
+      }
+      if (!category) {
+        errors.push(`Row ${rowNum}: Category is required`);
+        return;
+      }
+
+      const numPrice = Number(rawPrice);
+      if (rawPrice === '' || isNaN(numPrice) || numPrice < 0) {
+        errors.push(`Row ${rowNum}: Valid non-negative price is required`);
+        return;
+      }
+
+      const numQty = rawQty === '' ? 0 : Number(rawQty);
+      if (isNaN(numQty) || numQty < 0) {
+        errors.push(`Row ${rowNum}: Valid non-negative quantity is required`);
+        return;
+      }
+
+      validProducts.push({
+        name,
+        category,
+        price: numPrice,
+        quantity: numQty
+      });
+    });
+
+    if (validProducts.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid products to import',
+        errors
+      });
+    }
+
+    const createdProducts = await Product.insertMany(validProducts);
+
+    res.status(201).json({
+      success: true,
+      message: `Successfully imported ${createdProducts.length} product(s)`,
+      count: createdProducts.length,
+      data: createdProducts,
+      errors: errors.length > 0 ? errors : undefined
+    });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map((val) => val.message);
+      return res.status(400).json({ success: false, message: messages.join(', ') });
+    }
+    res.status(500).json({
+      success: false,
+      message: 'Server error while importing products',
+      error: error.message
+    });
+  }
+};

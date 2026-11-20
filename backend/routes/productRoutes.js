@@ -5,12 +5,16 @@ const {
   getProductById,
   createProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  bulkImportProducts
 } = require('../controllers/productController');
 
 router.route('/')
   .get(getProducts)
   .post(createProduct);
+
+router.post('/bulk', bulkImportProducts);
+router.post('/bulk-import', bulkImportProducts);
 
 router.route('/:id')
   .get(getProductById)

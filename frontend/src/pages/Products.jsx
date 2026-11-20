@@ -3,6 +3,7 @@ import { productService } from '../services/api';
 import StatCard from '../components/StatCard';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
+import BulkImportModal from '../components/BulkImportModal';
 
 const initialForm = {
   name: '',
@@ -25,6 +26,9 @@ const Products = ({ showToast }) => {
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState(null);
+
+  // Bulk Import state
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
   const fetchProducts = async () => {
     try {
@@ -184,6 +188,19 @@ const Products = ({ showToast }) => {
               </option>
             ))}
           </select>
+
+          <button
+            className="btn-orange-pill"
+            onClick={() => setImportModalOpen(true)}
+            title="Bulk import products from CSV file"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>Bulk Import</span>
+          </button>
 
           <button className="btn-orange-pill" onClick={handleOpenAdd}>
             <span style={{ fontSize: '16px', lineHeight: 1 }}>+</span>
@@ -386,6 +403,13 @@ const Products = ({ showToast }) => {
         title="Delete Product"
         message={`Are you sure you want to delete "${deletingProduct?.name}"?`}
         loading={submitting}
+      />
+
+      <BulkImportModal
+        isOpen={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        onSuccess={fetchProducts}
+        showToast={showToast}
       />
     </div>
   );

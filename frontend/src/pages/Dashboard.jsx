@@ -3,6 +3,7 @@ import { dashboardService, purchaseService, supplierService, productService, see
 import StatCard from '../components/StatCard';
 import Modal from '../components/Modal';
 import ConfirmModal from '../components/ConfirmModal';
+import BulkImportModal from '../components/BulkImportModal';
 
 const Dashboard = ({ showToast }) => {
   const [stats, setStats] = useState({
@@ -16,6 +17,7 @@ const Dashboard = ({ showToast }) => {
   const [resetting, setResetting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [period, setPeriod] = useState('This Month');
+  const [importModalOpen, setImportModalOpen] = useState(false);
 
   // New Purchase Modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -246,6 +248,20 @@ const Dashboard = ({ showToast }) => {
               <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
             </svg>
             <span>{resetting ? 'Resetting...' : 'Reset Reference Data'}</span>
+          </button>
+
+          {/* Bulk Import Products Button */}
+          <button
+            className="btn-orange-pill"
+            onClick={() => setImportModalOpen(true)}
+            title="Bulk import products from CSV file"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <span>Bulk Import</span>
           </button>
 
           {/* + New Purchase Action Button */}
@@ -565,6 +581,14 @@ const Dashboard = ({ showToast }) => {
         title="Delete Purchase"
         message="Are you sure you want to delete this purchase transaction record?"
         loading={submitting}
+      />
+
+      {/* Bulk Import Modal */}
+      <BulkImportModal
+        isOpen={importModalOpen}
+        onClose={() => setImportModalOpen(false)}
+        onSuccess={fetchDashboardData}
+        showToast={showToast}
       />
     </div>
   );

@@ -9,7 +9,8 @@
     "dev": "nodemon server.js",
     "seed": "node seed.js shoes",
     "seed:shoes": "node seed.js shoes",
-    "seed:electronics": "node seed.js electronics"
+    "seed:electronics": "node seed.js electronics",
+    "view-db": "node view_db.js"
   },
   "keywords": ["purchase-management", "mern", "express", "mongoose"],
   "author": "",
